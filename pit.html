@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ピット画面</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+    #messageInput{
+      font-size: 54px;
+      padding: 20px;
+      border: 3px solid #333;
+      border-radius: 12px;
+      background-color: #fff;
+      line-height: 1.5em;
+      min-height: 3em;
+      width: 90%;
+      max-width: 900px;
+      box-sizing: border-box;
+      text-align: center;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-y: auto;
+
+
+      
+      /*ドライバーが見てる画面とサイズ合わせてみた
+      font-size: 36px;
+      padding: 20px;
+      border: 2px solid #333;
+      border-radius: 8px;
+      background-color: #fff;
+      line-height: 1.5em;
+      width: 100%;
+      max-width: 600px;
+      box-sizing: border-box;
+      text-align: center;
+      white-space: pre-wrap;
+      word-break: break-word;
+      resize: none; /* 高さ固定（必要なら） */
+
+      /*font-size: 32px;
+      padding: 20px;
+      border: 2px solid #333;
+      border-radius: 8px;
+      background-color: #fff;
+      min-height: 3em;            /* 2行分の高さを確保 */
+      /*line-height: 1.5em;         /* 行間調整（2行で3em） */
+      /*display: flex;
+      align-items: center;        /* 垂直方向の中央揃え */
+      /*justify-content: center;    /* 水平方向の中央揃え */
+      /*text-align: center;
+      white-space: pre-wrap;      /* 改行や空白を保持して折り返し */
+      /*word-break: break-word;     /* 長い単語も折り返す */
+      /*width: 90%;
+      max-width: 800px
+      */
+
+
+      
+      
+
+      
+      /*-----これが動いているーーー
+      font-size: 1.2em;
+      padding: 10px;
+      margin: 10px 0;
+      width: 100%;
+      max-width: 600px;
+      height: 70px;
+      ------------*/
+    }
+    button {
+      font-size: 0.9em;
+      padding: 0.4em 1em;
+      width: auto;
+      height: auto;
+      line-height: 1.2;
+    }
+    #sentMessageList {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      max-width: 600px;
+    }
+    #responseList {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      max-width: 600px;
+    }
+    li {
+      margin-bottom: 8px;
+      font-size: 1em;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>ドライバーへのメッセージ(4行まで、一行あたり15文字)</h2>
+
+  <!-- <input type="text" id="messageInput" placeholder="メッセージを入力"> -->
+  <div id="messageInput" contenteditable="true" role="textbox" aria-multiline="true" style="outline: none;"></div>  
+  
+  <button onclick="sendMessage()">送信</button>
+  
+  <div id="sendStatus" style="margin-top:10px; font-weight:bold; color:green;"></div>
+
+  
+  <h3>送信履歴</h3>
+  <ul id="sentMessageList"></ul>
+
+  
+  <h3>ドライバーからの応答</h3>
+  <ul id="responseList"></ul>
+
+  <!--通知音ファイル-->
+  <audio id="notifySound" src="notify.mp3" preload="auto"></audio>
+
+  <!--通知音のオンオフ切り替えボタン-->
+  <button onclick="toggleSound()">通知音：オン</button>
+  
+  <!-- 音が出るかテスト-->
+  <button onclick="document.getElementById('notifySound').play()">音を鳴らすテスト</button>
+
+
+
+
+  
+  <!-- Firebase SDK v8形式 -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script>
+  // Firebase設定
+  const firebaseConfig = {
+    apiKey: "AIzaSyCcNVldAlyQ7p7ZynrVzraZdiY3WCQCiP8",
+    authDomain: "race-app-76da9.firebaseapp.com",
+    databaseURL: "https://race-app-76da9-default-rtdb.firebaseio.com",
+    projectId: "race-app-76da9",
+    storageBucket: "race-app-76da9.appspot.com",
+    messagingSenderId: "574674480250",
+    appId: "1:574674480250:web:6eba73435182cb053d1fc3"
+  };
+
+  // 初期化
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+
+//-------------メッセージ送信の場所------------------
+//// メッセージ送信ver2
+function sendMessage() {
+  const msg = document.getElementById("messageInput").innerText;
+  const status = document.getElementById("sendStatus");
+
+  if (msg.trim() === "") {
+   db.ref("race/message").set({ text: "" })
+    .then(() => {
+      status.textContent = "メッセージ入力待ちを送信しました";
+      status.style.color = "orange";
+    })
+    .catch(error => {
+      status.textContent = "送信失敗：" + error.message;
+      status.style.color = "red";
+    });
+    return;
+  }
+
+  db.ref("race/message").set({ text: msg })
+    .then(() => {
+      status.textContent = "送信完了！";
+      status.style.color = "green";
+      //document.getElementById("messageInput").value = "";　　　テキストボックスに送信したメッセージを残しておきたいため削除
+
+      const li = document.createElement("li");
+      li.textContent = `${new Date().toLocaleTimeString()} - ${msg}`;
+      document.getElementById("sentMessageList").appendChild(li);
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "削除";
+      deleteBtn.style.marginLeft = "10px";
+      deleteBtn.onclick = () => {
+      li.remove(); // 画面から削除（Firebaseには影響なし）
+    };
+
+    li.appendChild(deleteBtn);
+    document.getElementById("sentMessageList").appendChild(li);
+    })
+    .catch(error => {
+      status.textContent = "送信失敗：" + error.message;
+      status.style.color = "red";
+    });
+}
+  
+  
+//--------------------応答に関する部分--------------------
+
+//通知音のオンオフ切り替え-----
+let soundEnabled = true; // 初期状態：音オン
+
+  function toggleSound() {
+    soundEnabled = !soundEnabled;
+    const btn = event.target;
+    btn.textContent = soundEnabled ? "通知音：オン" : "通知音：オフ";
+  }  
+
+// 応答受信ver2 ->多分良さそう　形が悪い気がするが・・・
+db.ref("race/response").on("child_added", snapshot => {
+  const data = snapshot.val();
+  const key = snapshot.key; // ← これが削除に必要
+
+  const li = document.createElement("li");
+  li.textContent = `${new Date(data.time).toLocaleTimeString()} - ${data.reply}`;
+
+  // ------ドライバーからの応答されたメッセージの削除ボタンを追加-------
+  const deleteBtn = document.createElement("button");
+  deleteBtn.textContent = "削除";
+  deleteBtn.style.marginLeft = "10px";
+  deleteBtn.onclick = () => {
+    db.ref("race/response/" + key).remove()
+      .then(() => li.remove())
+      .catch(err => console.error("削除失敗:", err));
+  };
+
+  li.appendChild(deleteBtn);
+  document.getElementById("responseList").appendChild(li);
+
+  //---------通知音をならす--------
+  const sound = document.getElementById("notifySound");
+  if (soundEnabled && sound) sound.play();
+});
+
+  //メッセージ入力を4行に制限（タブレットで表示が4行が最大）
+let isComposing = false;
+const inputBox = document.getElementById("messageInput");
+
+inputBox.addEventListener("compositionstart", () => {
+  isComposing = true;
+});
+
+inputBox.addEventListener("compositionend", () => {
+  isComposing = false;
+  setTimeout(enforceLineAndCharLimit, 0); // IME確定後に制限処理
+});
+
+inputBox.addEventListener("input", () => {
+  if (!isComposing) {
+    enforceLineAndCharLimit();
+  }
+});
+
+function enforceLineAndCharLimit() {
+  const maxLines = 5;
+  const maxCharsPerLine = 16;
+
+  const text = inputBox.innerText;
+  let lines = text.split(/\r?\n/);
+
+  // 各行の文字数を制限
+  lines = lines.map(line => line.slice(0, maxCharsPerLine));
+
+  // 行数制限
+  if (lines.length > maxLines) {
+    lines = lines.slice(0, maxLines);
+  }
+
+  // 変更が必要な場合のみ更新
+  const newText = lines.join("\n");
+  if (newText !== text) {
+    inputBox.innerText = newText;
+
+    // キャレットを末尾に移動
+    const range = document.createRange();
+    const sel = window.getSelection();
+    range.selectNodeContents(inputBox);
+    range.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+}
+
+
+
+  
+  
+</script>
+
+
+  
+  </script>
+</body>
+</html>

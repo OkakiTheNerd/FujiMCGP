@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ドライバー画面</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 20px;
+      background-color: #f9f9f9;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #messageDisplay {
+      font-size: 60px;
+      font-weight: bold;
+      padding: 20px;
+      border: 2px solid #333;
+      border-radius: 8px;
+      background-color: #fff;
+      line-height: 1.5em;   　/* 行間調整（2行で3em） */
+      display: flex;
+      align-items: center;        /* 垂直方向の中央揃え */
+      justify-content: center;    /* 水平方向の中央揃え */
+      text-align: center;
+      white-space: pre-wrap;      /* 改行や空白を保持して折り返し */
+      word-break: break-word;     /* 長い単語も折り返す */
+      width: 900px;  　　　　　　/*横方向大きさ　画面の何パーセントまで広げるか*/
+      height: 500px;
+      overflow-y: auto;
+      margin: 0 auto;
+    }
+
+    .button-row {
+  display: flex;
+  flex-wrap: wrap;              /* 画面が狭いときは折り返し */
+  justify-content: center;      /* 中央揃え */
+  gap: 12px;                    /* ボタン間の余白 */
+  margin-top: 20px;
+}
+
+.button-row button {
+  font-size: 1.2em;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  flex: 1 1 auto;               /* 幅を自動調整しつつ並べる */
+  max-width: 200px;
+}
+
+.button-row button:hover {
+  background-color: #0056b3;
+}
+
+    /*button {
+      font-size: 1.2em;
+      margin: 10px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      width: 80%;
+      max-width: 300px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    */
+    
+    @keyframes flash {
+    0%   { background-color: #e0f0ff; }
+    50%  { background-color: #99ccff; }
+    100% { background-color: #e0f0ff; }
+  }
+  #messageDisplay.flash {
+    animation: flash 1s ease-in-out 5; /* １秒 × ５回点滅　ここ変えたら米１も合わせて変える必要あり */
+  }  
+    /*h2.message-title {
+      font-size: 10px;
+      margin: 0;
+    }*/
+  </style>
+</head>
+
+
+
+
+
+
+  
+<body>
+  <!-- <h2 class="message-title">ピットからのメッセージ3</h2> -->
+  <div id="messageDisplay">メッセージ待機中...</div>
+
+  <h3>応答ボタン</h3>
+  <div class="button-row">
+    <button onclick="sendResponse('Yes')">Yes</button>
+    <button onclick="sendResponse('No')">No</button>
+    <button onclick="sendResponse('了解')"> 了解</button>
+    <button onclick="sendResponse('問題あり')"> 問題あり</button>
+    <button onclick="sendResponse('ピットイン希望')"> ピットイン希望</button>
+  </div>
+  
+  <div id="responseStatus" style="margin-top:14px; font-weight:bold; color:green;"></div>
+    
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
+  
+// Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyCcNVldAlyQ7p7ZynrVzraZdiY3WCQCiP8",
+    authDomain: "race-app-76da9.firebaseapp.com",
+    databaseURL: "https://race-app-76da9-default-rtdb.firebaseio.com",
+    projectId: "race-app-76da9",
+    storageBucket: "race-app-76da9.firebasestorage.app",
+    messagingSenderId: "574674480250",
+    appId: "1:574674480250:web:6eba73435182cb053d1fc3"
+  };
+
+ 
+    
+
+    // 初期化
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+
+db.ref("race/message").on("value", snapshot => {
+  const data = snapshot.val();
+  const msg = (data && typeof data.text === "string") ? data.text.trim() : "";
+
+  const display = document.getElementById("messageDisplay");
+  if (!display) return; // 要素が存在しない場合は何もしない
+
+  if (msg === "") {
+    display.textContent = "メッセージ入力待ち";
+    display.style.color = "gray";
+  } else {
+    display.textContent = msg;
+    display.style.color = "black";
+
+    // 一時的に点滅させる
+    display.classList.add("flash");
+    setTimeout(() => {
+      display.classList.remove("flash");
+    }, 5000); // 1秒 × 5回 = 5秒後に解除 CCSの変更に応じて変える必要あり＊１
+  }
+});
+
+    // 画面に表示する関数
+
+
+  function displayMessage(message) {
+  document.getElementById("messageDisplay").innerText = message;
+}
+
+    
+    // 応答送信 なんか二重記載になってうるけど動いてるから今はそのままにしておく(20251016のかきの)
+  window.sendResponse = function(response) {
+    db.ref("race/response").push({
+      reply: response,
+      time: new Date().toISOString()
+  });
+    window.sendResponse = function(response) {
+  const status = document.getElementById("responseStatus");
+
+  db.ref("race/response").push({
+    reply: response,
+    time: new Date().toISOString()
+  })
+  .then(() => {
+    status.textContent = "送信完了！";
+    status.style.color = "green";
+    setTimeout(() => {
+      status.textContent = "";
+    }, 6000); // 6秒後に消える
+  })
+  .catch(error => {
+    status.textContent = "送信失敗：" + error.message;
+    status.style.color = "red";
+  });
+};
+
+};
+
+  </script>
+</body>
+</html>
