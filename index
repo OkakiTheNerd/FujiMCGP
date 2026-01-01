@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>FujiMCGP</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 40px; }
+    a { display: block; margin: 20px; font-size: 2em; }
+  </style>
+</head>
+<body>
+  <h1>FujiMCGP</h1>
+  <a href="pit.html">▶ ピット画面</a>
+  <a href="driver.html">▶ ドライバー画面</a>
+</body>
+</html>
