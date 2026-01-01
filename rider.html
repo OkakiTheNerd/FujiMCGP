@@ -10,7 +10,7 @@
     body {
       font-family: sans-serif;
       text-align: center;
-      padding: 20px;
+      padding: 0px;
       background-color: #f9f9f9;
       height: 100%;
       margin: 0;
@@ -31,8 +31,9 @@
       text-align: center;
       white-space: pre-wrap;      /* 改行や空白を保持して折り返し */
       word-break: break-word;     /* 長い単語も折り返す */
-      width: 90vw;                /*横方向大きさ　画面の何パーセントまで広げるかー＞90%*/
-      height: 40vh;
+      width: clac(100vw-20px);/*横方向大きさ　画面の何パーセントまで広げるかー＞90%*/
+      max-width: none;
+      min-height: 40vh;
       overflow-y: auto;
       margin: 0 auto;
     }
