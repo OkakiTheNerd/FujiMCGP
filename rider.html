@@ -18,6 +18,44 @@
     
     }
     #messageDisplay {
+      #messageDisplay {
+  font-size: 8vw;
+  font-weight: bold;
+  padding: 20px;
+  border: 2px solid #333;
+  border-radius: 16px;
+  background-color: rgba(255,255,255,0.85); /* ← 背景が透ける */
+  line-height: 1.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: pre-wrap;
+  word-break: break-word;
+  width: 90%;
+  max-width: 600px;
+  min-height: 40vh;
+  margin: 20px auto;
+  box-sizing: border-box;
+  position: relative; /* ← 吹き出し三角形に必要 */
+}
+
+/* 吹き出しの三角形（左下から出す例） */
+#messageDisplay::after {
+  content: "";
+  position: absolute;
+  bottom: -20px;     /* 三角形の位置 */
+  left: 40px;        /* 写真の顔の位置に合わせて調整 */
+  width: 0;
+  height: 0;
+  border-width: 20px 20px 0 20px;
+  border-style: solid;
+  border-color: rgba(255,255,255,0.85) transparent transparent transparent;
+}
+
+
+      
+      /*
       font-size: 8vw;
       font-weight: bold;
       padding: 0px;
@@ -25,18 +63,24 @@
       border-radius: 8px;
       background-color: #fff;
       line-height: 1.5em;         /* 行間調整（2行で3em） */
+      /*
       display: flex;
       align-items: center;        /* 垂直方向の中央揃え */
+      /*
       justify-content: center;    /* 水平方向の中央揃え */
-      text-align: center;
+      /*text-align: center;
       white-space: pre-wrap;      /* 改行や空白を保持して折り返し */
+     /*
       word-break: break-word;     /* 長い単語も折り返す */
+      /*
       width: clac(100vw-20px);/*横方向大きさ　画面の何パーセントまで広げるかー＞90%*/
+      /*
       max-width: none;
       min-height: 40vh;
       overflow-y: auto;
       margin: 0;
       box-sizing: boder-box;
+      */
     }
 
     .button-row {
